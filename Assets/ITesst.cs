@@ -1,7 +1,7 @@
 ﻿
 using org.zgl;
 
-public interface ITesst  {
+public interface ITesst :IHttpSyncService {
     IoMessage xx(int i, string j);
     void xxx(int i, string j);
     string aa();

@@ -1,6 +1,6 @@
 ﻿namespace org.zgl
 {
-    public interface IHttpSync
+    public interface IHttpSyncService
     {
 
     }

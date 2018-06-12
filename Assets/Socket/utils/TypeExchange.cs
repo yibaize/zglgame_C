@@ -38,6 +38,9 @@ namespace org.zgl
             {
                 return byte.Parse(param);
             }
+            else if (t == typeof(string)) {
+                return param;
+            }
             throw new SystemException("数据参数转换异常");
         }
     }

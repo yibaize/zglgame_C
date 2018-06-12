@@ -2,8 +2,8 @@
 {
     public class SocketFactory
     {
-        private TcpSocketImpl tcp;
-        private HttpSocketImpl http;
+        private ISocket tcp;
+        private ISocket http = new HttpSocketImpl();
         private static SocketFactory instance;
 
         public static SocketFactory getInstance()

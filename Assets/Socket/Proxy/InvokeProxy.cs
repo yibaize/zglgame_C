@@ -2,6 +2,8 @@
 using System.Reflection;
 using System.Runtime.Remoting.Messaging;
 using System.Runtime.Remoting.Proxies;
+using UnityEngine;
+
 namespace org.zgl
 {
     public class InvokeProxy<T> : RealProxy
@@ -27,14 +29,15 @@ namespace org.zgl
                 ParameterInfo[] parameterInfos = methodInfo.GetParameters();
                 Type returnType = methodInfo.ReturnType;
                 IoMessage ioMessage = getIoMessage(type.ToString(), methodInfo.Name, callMessage.Args);
-                //同步tcp远程调用
+                //远程调用
                 object result = request(ioMessage);
-
+                Debug.Log("返回了:"+ result);
                 //同步获取返回值
                 if (!returnType.ToString().Equals("System.Void"))
                 {
+                    IoMessage message = (IoMessage)result;
                     //如果不是基础数据类型
-                    if (!returnType.IsPrimitive)
+                    if (!returnType.IsPrimitive && !returnType.ToString().Equals("System.String"))
                     {
                         //反射ProtostuffUtils工具类
                         Assembly assembly = Assembly.GetExecutingAssembly(); // 获取当前程序集 
@@ -44,14 +47,14 @@ namespace org.zgl
                         //获取带有泛型反序列化的工具类方法
                         MethodInfo protoMethodInfo = protoType.GetMethod("ProtobufDeserialize").MakeGenericMethod(returnType);
                         //反射调用泛型参数序列化返回序列化后的数据
-                        object protoResult = protoMethodInfo.Invoke(protoObj, new object[] { ioMessage.getData() });
+                        object protoResult = protoMethodInfo.Invoke(protoObj, new object[] { message.getData() });
                         //返回最终返回值
                         return returnmessage(callMessage, protoResult);
                     }
-                    else if (returnType.GetType().IsPrimitive)
+                    else if (returnType.GetType().IsPrimitive || returnType.ToString().Equals("System.String"))
                     {
                         //如果是基础数据类型
-                        object o = TypeExchange.exchange(returnType, result.ToString());
+                        object o = TypeExchange.exchange(returnType, message.getData().ToString());
                         return returnmessage(callMessage, o);
                     }
                 }
@@ -94,21 +97,21 @@ namespace org.zgl
         }
         private object request(IoMessage ioMessage)
         {
-            if (type.IsAssignableFrom(typeof(IHttpAsync)))
+            if (typeof(IHttpAsyncService).IsAssignableFrom(type))
             {
                 SocketFactory.getInstance().httpAsyncRequest(ioMessage);
                 return null;
             }
-            else if (type.IsAssignableFrom(typeof(IHttpSync)))
+            else if (typeof(IHttpSyncService).IsAssignableFrom(type))
             {
                 return SocketFactory.getInstance().httpSyncRequest(ioMessage);
             }
-            else if (type.IsAssignableFrom(typeof(ITcpAsync)))
+            else if (typeof(ITcpAsyncService).IsAssignableFrom(type))
             {
                 SocketFactory.getInstance().tcpAsyncRequest(ioMessage);
                 return null;
             }
-            else if (type.IsAssignableFrom(typeof(ITcpSync)))
+            else if (typeof(ITcpSyncService).IsAssignableFrom(type))
             {
                 return SocketFactory.getInstance().tcpSyncRequest(ioMessage);
             }

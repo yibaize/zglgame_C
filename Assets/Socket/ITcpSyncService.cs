@@ -1,6 +1,6 @@
 ﻿namespace org.zgl
 {
-    public interface ITcpAsync
+    public interface ITcpSyncService
     {
 
     }
